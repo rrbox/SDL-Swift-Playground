@@ -4,13 +4,13 @@
 import PackageDescription
 
 let package = Package(
-    name: "SDL-Swift-exp",
+    name: "SDL3-Swift-Playground",
     platforms: [
         .macOS(.v13),
         .iOS(.v14)
     ],
     products: [
-        .executable(name: "SDL-Swift-exp", targets: ["SDL-Swift-exp"])
+        .executable(name: "SDL3-Swift-Playground", targets: ["SDL3-Swift-Playground"])
     ],
     targets: [
         // SDL3 XCFramework (静的ライブラリ)
@@ -56,7 +56,7 @@ let package = Package(
 
         // メイン実行ターゲット
         .executableTarget(
-            name: "SDL-Swift-exp",
+            name: "SDL3-Swift-Playground",
             dependencies: ["CSDL3"]
         ),
     ]
