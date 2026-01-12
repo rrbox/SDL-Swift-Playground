@@ -25,6 +25,16 @@ echo "Project root: $PROJECT_ROOT"
 echo "SDL source: $SDL_SOURCE"
 echo "SDL version tag: $SDL_TAG"
 
+# SDLソースが存在しない場合は自動取得
+if [[ ! -d "$SDL_SOURCE/.git" ]]; then
+    echo ""
+    echo "=========================================="
+    echo "SDL source not found. Cloning..."
+    echo "=========================================="
+    mkdir -p "$(dirname "$SDL_SOURCE")"
+    git clone https://github.com/libsdl-org/SDL.git "$SDL_SOURCE"
+fi
+
 # 明示的にタグをチェックアウト
 echo ""
 echo "=========================================="
