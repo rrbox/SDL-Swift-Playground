@@ -35,17 +35,7 @@ SDL-Swift-Playground/
     └── build-xcframework.sh  # SDL3 build script
 ```
 
-## Setup
-
-### Build SDL3 XCFramework (first time only)
-
-```bash
-./scripts/build-xcframework.sh
-```
-
-This script builds SDL3 from source and generates `Dependencies/SDL3.xcframework`.
-
-### Build and Run
+## Build and Run
 
 ```bash
 swift build
@@ -69,16 +59,6 @@ The current demo implements the following features:
 - **Click**: Add a new rectangle
 - **ESC**: Quit application
 - **Close window**: Quit application
-
-## SDL3 Version
-
-The SDL3 version is managed in `sdl-version.txt`.
-
-```
-release-3.4.0
-```
-
-To change the version, edit this file and re-run `build-xcframework.sh`.
 
 ## License
 
