@@ -1,4 +1,4 @@
-# SDL3-Swift-Playground
+# SDL-Swift-Playground
 
 An experimental project exploring SDL3 integration with Swift.
 
@@ -18,11 +18,11 @@ This is a sandbox for experimenting with SDL3 (Simple DirectMedia Layer 3) in Sw
 ## Project Structure
 
 ```
-SDL3-Swift-Playground/
+SDL-Swift-Playground/
 ├── Package.swift           # Swift Package Manager configuration
 ├── sdl-version.txt         # SDL3 build version specification
 ├── Sources/
-│   ├── SDL3-Swift-Playground/  # Main application
+│   ├── SDL-Swift-Playground/  # Main application
 │   │   └── main.swift
 │   └── CSDL3/                  # SDL3 C bindings
 │       ├── include/
