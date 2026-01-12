@@ -147,3 +147,13 @@ echo "Done!"
 echo "=========================================="
 echo "XCFramework created at: $OUTPUT_DIR/SDL3.xcframework"
 ls -la "$OUTPUT_DIR/SDL3.xcframework"
+
+# クリーンアップ: SDLソースを削除
+echo ""
+echo "=========================================="
+echo "Cleaning up..."
+echo "=========================================="
+rm -rf "$SDL_SOURCE"
+rm -rf "$BUILD_DIR"
+echo "Removed: $SDL_SOURCE"
+echo "Removed: $BUILD_DIR"
