@@ -8,7 +8,7 @@ A script that builds SDL3 from source and generates an XCFramework.
 
 ### Features
 
-- Builds SDL3 using the version tag specified in `sdl-version.txt`
+- Builds SDL3 using the version tag specified in `dependencies.yml`
 - Builds static library for macOS (Universal: arm64 + x86_64)
 - Builds static library for iOS Device (arm64)
 - Builds static library for iOS Simulator (arm64 + x86_64)
@@ -26,9 +26,21 @@ A script that builds SDL3 from source and generates an XCFramework.
 ./scripts/build-xcframework.sh
 ```
 
+### Version Management
+
+Library versions are managed in `dependencies.yml` at the project root:
+
+```yaml
+libraries:
+  SDL3:
+    tag: release-3.4.0
+```
+
+To change the SDL3 version, edit the `tag` value and re-run the build script.
+
 ### Build Flow
 
-1. Read version tag from `sdl-version.txt`
+1. Read version tag from `dependencies.yml`
 2. Clone SDL3 source code from GitHub (into `Vendor/SDL/`)
 3. Checkout the specified tag
 4. Build for each platform using CMake

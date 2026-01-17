@@ -4,16 +4,29 @@ set -e
 cd "$(dirname "$0")/.."
 PROJECT_ROOT="$(pwd)"
 
-# バージョンファイルからタグを読み込む
-VERSION_FILE="$PROJECT_ROOT/sdl-version.txt"
-if [[ ! -f "$VERSION_FILE" ]]; then
-    echo "Error: $VERSION_FILE not found"
-    exit 1
-fi
+# dependencies.yml からライブラリのタグを取得する関数
+get_library_tag() {
+    local lib_name=$1
+    local deps_file="$PROJECT_ROOT/dependencies.yml"
 
-SDL_TAG=$(cat "$VERSION_FILE" | tr -d '[:space:]')
-if [[ -z "$SDL_TAG" ]]; then
-    echo "Error: SDL tag is empty in $VERSION_FILE"
+    if [[ ! -f "$deps_file" ]]; then
+        echo "Error: $deps_file not found" >&2
+        return 1
+    fi
+
+    local tag=$(grep -A1 "^  ${lib_name}:" "$deps_file" | grep "tag:" | sed 's/.*tag: *//' | tr -d '[:space:]')
+
+    if [[ -z "$tag" ]]; then
+        echo "Error: Tag for $lib_name not found in $deps_file" >&2
+        return 1
+    fi
+
+    echo "$tag"
+}
+
+# SDL3 のタグを取得
+SDL_TAG=$(get_library_tag "SDL3")
+if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
