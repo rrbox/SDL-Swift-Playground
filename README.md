@@ -14,26 +14,51 @@ This is a sandbox for experimenting with SDL3 (Simple DirectMedia Layer 3) in Sw
 - iOS 14.0+ (for iOS builds)
 - Swift 6.0+
 - Xcode Command Line Tools
+- CMake (for building XCFrameworks)
 
 ## Project Structure
 
 ```
 SDL-Swift-Playground/
-├── Package.swift           # Swift Package Manager configuration
-├── sdl-version.txt         # SDL3 build version specification
+├── Package.swift              # Swift Package Manager configuration
+├── dependencies.yml           # Library versions and build configuration
 ├── Sources/
 │   ├── SDL-Swift-Playground/  # Main application
 │   │   └── main.swift
-│   └── CSDL3/                  # SDL3 C bindings
+│   ├── CSDL3/                 # SDL3 C bindings
+│   │   ├── include/
+│   │   │   ├── module.modulemap
+│   │   │   └── shim.h
+│   │   └── shim.c
+│   └── CSDL3_ttf/             # SDL3_ttf C bindings
 │       ├── include/
 │       │   ├── module.modulemap
 │       │   └── shim.h
 │       └── shim.c
 ├── Dependencies/
-│   └── SDL3.xcframework    # Pre-built SDL3 library
+│   ├── SDL3.xcframework       # Pre-built SDL3 library
+│   └── SDL3_ttf.xcframework   # Pre-built SDL3_ttf library
 └── scripts/
-    └── build-xcframework.sh  # SDL3 build script
+    ├── build-xcframework.sh   # XCFramework build script
+    └── README.md              # Build script documentation
 ```
+
+## Building XCFrameworks
+
+To build or rebuild the XCFrameworks from source:
+
+```bash
+# Build all libraries
+./scripts/build-xcframework.sh --all
+
+# Build a specific library
+./scripts/build-xcframework.sh SDL3
+
+# Force rebuild
+./scripts/build-xcframework.sh --force SDL3
+```
+
+See [scripts/README.md](scripts/README.md) for detailed documentation.
 
 ## Build and Run
 

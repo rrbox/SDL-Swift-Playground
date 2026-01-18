@@ -1,4 +1,5 @@
 import CSDL3
+import CSDL3_ttf
 import Foundation
 
 print("SDL3 Demo - Bouncing Rectangles")
@@ -20,6 +21,12 @@ extension SDL {
         static let events = InitFlags(rawValue: 0x00004000)  // SDL_INIT_EVENTS
         static let sensor = InitFlags(rawValue: 0x00008000)  // SDL_INIT_SENSOR
         static let camera = InitFlags(rawValue: 0x00010000)  // SDL_INIT_CAMERA
+    }
+
+    struct ExternalInitFlags: OptionSet {
+        let rawValue: Uint8
+
+        static let ttf = ExternalInitFlags(rawValue: 1 << 0)
     }
 
     struct WindowFlags: OptionSet {
@@ -54,14 +61,27 @@ extension SDL {
 }
 
 extension SDL {
-    static func sdlInit(_ flags: SDL.InitFlags) {
+    static func sdlInit(_ flags: SDL.InitFlags, external: SDL.ExternalInitFlags = []) {
         if !SDL_Init(flags.rawValue) {
             let error = String(cString: SDL_GetError())
             fatalError("SDL_Init failed: \(error)")
         }
+
+        // 外部ライブラリの初期化
+        if external.contains(.ttf) {
+            if !TTF_Init() {
+                let error = String(cString: SDL_GetError())
+                fatalError("TTF_Init failed: \(error)")
+            }
+        }
     }
 
-    static func quit() {
+    static func quit(external: SDL.ExternalInitFlags = []) {
+        // 外部ライブラリの終了（初期化の逆順）
+        if external.contains(.ttf) {
+            TTF_Quit()
+        }
+
         SDL_Quit()
     }
 }
@@ -164,9 +184,8 @@ extension SDL {
     }
 }
 
-
-SDL.sdlInit([.video])
-defer { SDL.quit() }
+SDL.sdlInit([.video], external: [.ttf])
+defer { SDL.quit(external: [.ttf]) }
 
 // バージョン表示
 let version = SDL_GetVersion()
@@ -174,6 +193,13 @@ let major = version / 1000000
 let minor = (version / 1000) % 1000
 let micro = version % 1000
 print("SDL Version: \(major).\(minor).\(micro)")
+
+// SDL_ttf バージョン表示
+let ttfVersion = TTF_Version()
+let ttfMajor = ttfVersion / 1000000
+let ttfMinor = (ttfVersion / 1000) % 1000
+let ttfMicro = ttfVersion % 1000
+print("SDL_ttf Version: \(ttfMajor).\(ttfMinor).\(ttfMicro)")
 
 // ウィンドウ作成（OptionSet を使用）
 let windowWidth: Int32 = 800
