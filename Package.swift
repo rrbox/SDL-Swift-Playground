@@ -71,7 +71,7 @@ let package = Package(
         // メイン実行ターゲット
         .executableTarget(
             name: "SDL-Swift-Playground",
-            dependencies: ["CSDL3"]
+            dependencies: ["CSDL3", "CSDL3_ttf"]
         ),
     ]
 )
