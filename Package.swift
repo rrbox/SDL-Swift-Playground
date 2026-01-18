@@ -19,7 +19,13 @@ let package = Package(
             path: "Dependencies/SDL3.xcframework"
         ),
 
-        // Cバインディングターゲット
+        // SDL3_ttf XCFramework (静的ライブラリ)
+        .binaryTarget(
+            name: "SDL3_ttf",
+            path: "Dependencies/SDL3_ttf.xcframework"
+        ),
+
+        // SDL3 Cバインディングターゲット
         .target(
             name: "CSDL3",
             dependencies: ["SDL3"],
@@ -52,6 +58,14 @@ let package = Package(
                 // 共通
                 .linkedFramework("Foundation"),
             ]
+        ),
+
+        // SDL3_ttf Cバインディングターゲット
+        .target(
+            name: "CSDL3_ttf",
+            dependencies: ["SDL3_ttf", "CSDL3"],
+            path: "Sources/CSDL3_ttf",
+            publicHeadersPath: "include"
         ),
 
         // メイン実行ターゲット

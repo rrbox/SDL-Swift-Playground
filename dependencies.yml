@@ -1,3 +1,17 @@
 libraries:
   SDL3:
+    repo: https://github.com/libsdl-org/SDL.git
     tag: release-3.4.0
+    cmake_options:
+      - -DSDL_SHARED=OFF
+      - -DSDL_STATIC=ON
+      - -DSDL_TEST=OFF
+
+  SDL3_ttf:
+    repo: https://github.com/libsdl-org/SDL_ttf.git
+    tag: release-3.2.2
+    depends_on: [SDL3]
+    cmake_options:
+      - -DBUILD_SHARED_LIBS=OFF
+      - -DSDLTTF_VENDORED=ON
+      - -DSDLTTF_HARFBUZZ=ON
