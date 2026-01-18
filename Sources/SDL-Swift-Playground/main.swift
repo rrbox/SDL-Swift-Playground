@@ -4,94 +4,6 @@ import Foundation
 
 print("SDL3 Demo - Bouncing Rectangles")
 
-enum SDL {
-
-}
-
-extension SDL {
-    struct InitFlags: OptionSet {
-        let rawValue: UInt32
-
-        // SDL_init.h の定義より
-        static let audio = InitFlags(rawValue: 0x00000010)  // SDL_INIT_AUDIO
-        static let video = InitFlags(rawValue: 0x00000020)  // SDL_INIT_VIDEO
-        static let joystick = InitFlags(rawValue: 0x00000200)  // SDL_INIT_JOYSTICK
-        static let haptic = InitFlags(rawValue: 0x00001000)  // SDL_INIT_HAPTIC
-        static let gamepad = InitFlags(rawValue: 0x00002000)  // SDL_INIT_GAMEPAD
-        static let events = InitFlags(rawValue: 0x00004000)  // SDL_INIT_EVENTS
-        static let sensor = InitFlags(rawValue: 0x00008000)  // SDL_INIT_SENSOR
-        static let camera = InitFlags(rawValue: 0x00010000)  // SDL_INIT_CAMERA
-    }
-
-    struct ExternalInitFlags: OptionSet {
-        let rawValue: Uint8
-
-        static let ttf = ExternalInitFlags(rawValue: 1 << 0)
-    }
-
-    struct WindowFlags: OptionSet {
-        let rawValue: UInt64
-
-        // SDL_video.h の定義より
-        static let fullscreen = WindowFlags(rawValue: 0x00000001)  // SDL_WINDOW_FULLSCREEN
-        static let opengl = WindowFlags(rawValue: 0x00000002)  // SDL_WINDOW_OPENGL
-        static let occluded = WindowFlags(rawValue: 0x00000004)  // SDL_WINDOW_OCCLUDED
-        static let hidden = WindowFlags(rawValue: 0x00000008)  // SDL_WINDOW_HIDDEN
-        static let borderless = WindowFlags(rawValue: 0x00000010)  // SDL_WINDOW_BORDERLESS
-        static let resizable = WindowFlags(rawValue: 0x00000020)  // SDL_WINDOW_RESIZABLE
-        static let minimized = WindowFlags(rawValue: 0x00000040)  // SDL_WINDOW_MINIMIZED
-        static let maximized = WindowFlags(rawValue: 0x00000080)  // SDL_WINDOW_MAXIMIZED
-        static let mouseGrabbed = WindowFlags(rawValue: 0x00000100)  // SDL_WINDOW_MOUSE_GRABBED
-        static let inputFocus = WindowFlags(rawValue: 0x00000200)  // SDL_WINDOW_INPUT_FOCUS
-        static let mouseFocus = WindowFlags(rawValue: 0x00000400)  // SDL_WINDOW_MOUSE_FOCUS
-        static let external = WindowFlags(rawValue: 0x00000800)  // SDL_WINDOW_EXTERNAL
-        static let modal = WindowFlags(rawValue: 0x00001000)  // SDL_WINDOW_MODAL
-        static let highPixelDensity = WindowFlags(rawValue: 0x00002000)  // SDL_WINDOW_HIGH_PIXEL_DENSITY
-        static let mouseCapture = WindowFlags(rawValue: 0x00004000)  // SDL_WINDOW_MOUSE_CAPTURE
-        static let alwaysOnTop = WindowFlags(rawValue: 0x00010000)  // SDL_WINDOW_ALWAYS_ON_TOP
-        static let utility = WindowFlags(rawValue: 0x00020000)  // SDL_WINDOW_UTILITY
-        static let tooltip = WindowFlags(rawValue: 0x00040000)  // SDL_WINDOW_TOOLTIP
-        static let popupMenu = WindowFlags(rawValue: 0x00080000)  // SDL_WINDOW_POPUP_MENU
-        static let keyboardGrabbed = WindowFlags(rawValue: 0x00100000)  // SDL_WINDOW_KEYBOARD_GRABBED
-        static let vulkan = WindowFlags(rawValue: 0x10000000)  // SDL_WINDOW_VULKAN
-        static let metal = WindowFlags(rawValue: 0x20000000)  // SDL_WINDOW_METAL
-        static let transparent = WindowFlags(rawValue: 0x40000000)  // SDL_WINDOW_TRANSPARENT
-        static let notFocusable = WindowFlags(rawValue: 0x80000000)  // SDL_WINDOW_NOT_FOCUSABLE
-    }
-}
-
-extension SDL {
-    static func sdlInit(_ flags: SDL.InitFlags, external: SDL.ExternalInitFlags = []) {
-        if !SDL_Init(flags.rawValue) {
-            let error = String(cString: SDL_GetError())
-            fatalError("SDL_Init failed: \(error)")
-        }
-
-        // 外部ライブラリの初期化
-        if external.contains(.ttf) {
-            if !TTF_Init() {
-                let error = String(cString: SDL_GetError())
-                fatalError("TTF_Init failed: \(error)")
-            }
-        }
-    }
-
-    static func quit(external: SDL.ExternalInitFlags = []) {
-        // 外部ライブラリの終了（初期化の逆順）
-        if external.contains(.ttf) {
-            TTF_Quit()
-        }
-
-        SDL_Quit()
-    }
-}
-
-extension SDL {
-    static func createWindow(_ title: String, _ w: Int32, _ h: Int32, _ flags: WindowFlags) -> OpaquePointer! {
-        SDL_CreateWindow(title, w, h, flags.rawValue)
-    }
-}
-
 // MARK: - Batch Rendering
 
 extension SDL {
@@ -185,7 +97,7 @@ extension SDL {
 }
 
 SDL.sdlInit([.video], external: [.ttf])
-defer { SDL.quit(external: [.ttf]) }
+defer { SDL.quit() }
 
 // バージョン表示
 let version = SDL_GetVersion()
@@ -205,23 +117,17 @@ print("SDL_ttf Version: \(ttfMajor).\(ttfMinor).\(ttfMicro)")
 let windowWidth: Int32 = 800
 let windowHeight: Int32 = 600
 
-guard let window = SDL.createWindow(
+let window = SDLWindow.create(
     "SDL3 Swift Demo",
     windowWidth,
     windowHeight,
     [.resizable]
-) else {
-    let error = String(cString: SDL_GetError())
-    fatalError("SDL_CreateWindow failed: \(error)")
-}
-defer { SDL_DestroyWindow(window) }
+)
+defer { window.destroy() }
 
 // レンダラー作成
-guard let renderer = SDL_CreateRenderer(window, nil) else {
-    let error = String(cString: SDL_GetError())
-    fatalError("SDL_CreateRenderer failed: \(error)")
-}
-defer { SDL_DestroyRenderer(renderer) }
+let renderer = SDLRenderer.create(window: window)
+defer { renderer.destroy() }
 
 // ディスプレイ情報を取得
 let displayID = SDL_GetPrimaryDisplay()
@@ -230,9 +136,9 @@ if let displayMode = SDL_GetCurrentDisplayMode(displayID) {
 }
 
 // VSync設定（ディスプレイ同期）
-let vsyncResult = SDL_SetRenderVSync(renderer, 1)  // 1 = VSync有効
+let vsyncResult = SDL_SetRenderVSync(renderer.pointer, 1)  // 1 = VSync有効
 var actualVSync: Int32 = -1
-SDL_GetRenderVSync(renderer, &actualVSync)
+SDL_GetRenderVSync(renderer.pointer, &actualVSync)
 print("VSync初期設定: result=\(vsyncResult), actual=\(actualVSync)")
 
 // バウンドする四角形の構造体
@@ -287,11 +193,29 @@ var rects: [BouncingRect] = (0..<100).map { _ in
     createRandomRect(screenWidth: 800, screenHeight: 600)
 }
 
+// Text Engine を作成（SDL3_ttf の新しい API）
+guard let textEngine = TTF_CreateRendererTextEngine(renderer.pointer) else {
+    let error = String(cString: SDL_GetError())
+    fatalError("TTF_CreateRendererTextEngine failed: \(error)")
+}
+defer { TTF_DestroyRendererTextEngine(textEngine) }
+
+// フォント読み込み
+let fontPath = "/System/Library/Fonts/Helvetica.ttc"
+guard let font = TTF_OpenFont(fontPath, 24) else {
+    let error = String(cString: SDL_GetError())
+    fatalError("TTF_OpenFont failed: \(error)")
+}
+defer { TTF_CloseFont(font) }
+
 // ベンチマーク用設定
 var useBatchRendering = true
 var vsyncEnabled = true   // FPS制限
 var drawGrid = true       // グリッド描画
 var drawBorders = true    // 枠線描画
+
+// FPS表示用テキストオブジェクト
+var fpsText: UnsafeMutablePointer<TTF_Text>?
 
 // メインループ
 var running = true
@@ -345,9 +269,9 @@ while running {
             case SDLK_V:
                 // VSync切り替え
                 vsyncEnabled.toggle()
-                let result = SDL_SetRenderVSync(renderer, vsyncEnabled ? 1 : 0)
+                let result = SDL_SetRenderVSync(renderer.pointer, vsyncEnabled ? 1 : 0)
                 var actualVSync: Int32 = -1
-                SDL_GetRenderVSync(renderer, &actualVSync)
+                SDL_GetRenderVSync(renderer.pointer, &actualVSync)
                 print("VSync: \(vsyncEnabled ? "ON" : "OFF") | SetResult: \(result) | Actual: \(actualVSync)")
             case SDLK_G:
                 // グリッド描画切り替え
@@ -363,7 +287,7 @@ while running {
 
         case SDL_EVENT_WINDOW_RESIZED:
             // ウィンドウサイズ変更時
-            _ = SDL_GetWindowSize(window, &currentWidth, &currentHeight)
+            _ = SDL_GetWindowSize(window.pointer, &currentWidth, &currentHeight)
 
         default:
             break
@@ -376,18 +300,18 @@ while running {
     }
 
     // 背景をクリア（暗いグレー）
-    SDL_SetRenderDrawColor(renderer, 30, 30, 40, 255)
-    SDL_RenderClear(renderer)
+    SDL_SetRenderDrawColor(renderer.pointer, 30, 30, 40, 255)
+    SDL_RenderClear(renderer.pointer)
 
     // グリッドを描画（背景装飾）- Gキーで切り替え可能
     if drawGrid {
-        SDL_SetRenderDrawColor(renderer, 50, 50, 60, 255)
+        SDL_SetRenderDrawColor(renderer.pointer, 50, 50, 60, 255)
         let gridSize: Int32 = 50
         for x in stride(from: Int32(0), to: currentWidth, by: Int(gridSize)) {
-            SDL_RenderLine(renderer, Float(x), 0, Float(x), Float(currentHeight))
+            SDL_RenderLine(renderer.pointer, Float(x), 0, Float(x), Float(currentHeight))
         }
         for y in stride(from: Int32(0), to: currentHeight, by: Int(gridSize)) {
-            SDL_RenderLine(renderer, 0, Float(y), Float(currentWidth), Float(y))
+            SDL_RenderLine(renderer.pointer, 0, Float(y), Float(currentWidth), Float(y))
         }
     }
 
@@ -397,13 +321,13 @@ while running {
         let fillData = rects.map { rect in
             (rect: rect.toSDLRect(), r: rect.r, g: rect.g, b: rect.b, a: UInt8(200))
         }
-        SDL.renderFilledRectsBatch(renderer: renderer, rects: fillData)
+        SDL.renderFilledRectsBatch(renderer: renderer.pointer, rects: fillData)
     } else {
         // 個別描画: 従来の方法
         for rect in rects {
             var sdlRect = rect.toSDLRect()
-            SDL_SetRenderDrawColor(renderer, rect.r, rect.g, rect.b, 200)
-            SDL_RenderFillRect(renderer, &sdlRect)
+            SDL_SetRenderDrawColor(renderer.pointer, rect.r, rect.g, rect.b, 200)
+            SDL_RenderFillRect(renderer.pointer, &sdlRect)
         }
     }
 
@@ -411,24 +335,40 @@ while running {
     if drawBorders {
         for rect in rects {
             var sdlRect = rect.toSDLRect()
-            SDL_SetRenderDrawColor(renderer,
+            SDL_SetRenderDrawColor(renderer.pointer,
                 UInt8(min(Int(rect.r) + 50, 255)),
                 UInt8(min(Int(rect.g) + 50, 255)),
                 UInt8(min(Int(rect.b) + 50, 255)),
                 255)
-            SDL_RenderRect(renderer, &sdlRect)
+            SDL_RenderRect(renderer.pointer, &sdlRect)
         }
     }
 
-    // 画面に表示
-    SDL_RenderPresent(renderer)
+    // FPSテキストを描画（Text Engine API）
+    if let text = fpsText {
+        TTF_DrawRendererText(text, 10, 10)
+    }
 
-    // フレームレート計算（1秒ごとに表示）
+    // 画面に表示
+    SDL_RenderPresent(renderer.pointer)
+
+    // フレームレート計算（1秒ごとに更新）
     frameCount += 1
     let currentTime = SDL_GetTicks()
     if currentTime - lastTime >= 1000 {
         let fps = Double(frameCount) * 1000.0 / Double(currentTime - lastTime)
-        print("FPS: \(String(format: "%.1f", fps)) | Rectangles: \(rects.count)")
+        let fpsString = "FPS: \(String(format: "%.1f", fps)) | Rectangles: \(rects.count)"
+        print(fpsString)
+
+        // FPSテキストオブジェクトを更新（Text Engine API）
+        if let oldText = fpsText {
+            TTF_DestroyText(oldText)
+        }
+        fpsText = TTF_CreateText(textEngine, font, fpsString, 0)
+        if let text = fpsText {
+            TTF_SetTextColor(text, 255, 255, 255, 255)
+        }
+
         frameCount = 0
         lastTime = currentTime
     }
@@ -438,6 +378,11 @@ while running {
     if !vsyncEnabled {
         // 制限なし - 最大FPSで動作
     }
+}
+
+// FPSテキストのクリーンアップ
+if let text = fpsText {
+    TTF_DestroyText(text)
 }
 
 print("Demo finished!")
